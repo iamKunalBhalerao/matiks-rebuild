@@ -1,0 +1,117 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id       String @id @default(uuid())
+  username String @unique
+  email    String @unique
+  password String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+
+  userRatings UserRating[]
+  gameMembers GameMember[]
+  sender      Friends[]        @relation("sender")
+  reciver     Friends[]        @relation("reciver")
+  answers     QuestionAnswer[]
+}
+
+model Game {
+  id        String     @id @default(uuid())
+  timeLimit Int
+  startedAt DateTime
+  endsAt    DateTime
+  status    GameStatus
+
+  gameMembers GameMember[]
+  questions   Question[]
+  answers     QuestionAnswer[]
+}
+
+model Question {
+  id        Int           @id @default(autoincrement())
+  sysAnswer Int
+  operant1  Int
+  operant2  Int
+  operation OperationSign
+
+  gameId String
+  game   Game   @relation(fields: [gameId], references: [id])
+
+  answers QuestionAnswer[]
+}
+
+model QuestionAnswer {
+  id     Int @id @default(autoincrement())
+  asnwer Int
+
+  questionId Int
+  question   Question @relation(fields: [questionId], references: [id])
+
+  gameId String
+  game   Game   @relation(fields: [gameId], references: [id])
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+}
+
+model GameMember {
+  id         String           @id @default(uuid())
+  gameStatus gameMemberStatus
+
+  gameId String
+  game   Game   @relation(references: [id], fields: [gameId])
+
+  userId String
+  user   User   @relation(references: [id], fields: [userId])
+}
+
+model UserRating {
+  id     String @id @default(uuid())
+  rating Int
+
+  userId String @unique
+  user   User   @relation(references: [id], fields: [userId])
+}
+
+model Friends {
+  id     String       @id @default(uuid())
+  status FriendStatus @default(pending)
+
+  reciverId String
+  reciver   User   @relation(name: "reciver", references: [id], fields: [reciverId])
+
+  senderId String
+  sender   User   @relation(name: "sender", references: [id], fields: [senderId])
+}
+
+enum FriendStatus {
+  accepted
+  rejected
+  pending
+}
+
+enum OperationSign {
+  ADD
+  SUB
+  MUL
+  DIV
+}
+
+enum GameStatus {
+  RUNNING
+  SEARCHING_FOR_PLAYERS
+  OVER
+}
+
+enum gameMemberStatus {
+  WON
+  LOST
+}
