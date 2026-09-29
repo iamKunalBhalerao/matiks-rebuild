@@ -34,6 +34,9 @@ export const signUpController = async (
         email,
         password: hashedPassword,
       },
+      omit: {
+        password: true,
+      },
     });
 
     if (!user) throw new ApiError("Error while Signing Up!", 400);
